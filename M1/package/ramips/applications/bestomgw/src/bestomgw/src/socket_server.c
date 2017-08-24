@@ -39,6 +39,8 @@
 /*********************************************************************
  * INCLUDES
  */
+#define _GNU_SOURCE  1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +56,7 @@
 #include <errno.h>
 
 #include "socket_server.h"
+#include "m1_protocol.h"
 
 #define MAX_CLIENTS 50
 
@@ -79,8 +82,9 @@ socketServerCb_t socketServerConnectCb;
 /*********************************************************************
  * LOCAL FUNCTION PROTOTYPES
  */
-static void deleteSocketRec(int rmSocketFd);
+//static void deleteSocketRec(int rmSocketFd);
 static int createSocketRec(void);
+static void deleteSocketRec(int rmSocketFd);
 
 /*********************************************************************
  * FUNCTIONS
@@ -335,7 +339,7 @@ uint32 socketSeverGetNumClients(void)
  */
 void socketSeverPoll(int clinetFd, int revent)
 {
-	printf("pollSocket++\n");
+	printf("pollSocket++, revent: %d\n",revent);
 
 	//is this a new connection on the listening socket
 	if (clinetFd == socketRecordHead->socketFd)
@@ -352,9 +356,9 @@ void socketSeverPoll(int clinetFd, int revent)
 		//this is a client socket is it a input or shutdown event
 		if (revent & POLLIN)
 		{
-			//uint32 pakcetCnt = 0;
+			uint32 pakcetCnt = 0;
 			//its a Rx event
-			//printf("got Rx on fd %d, pakcetCnt=%d\n", clinetFd, pakcetCnt++);
+			printf("got Rx on fd %d, pakcetCnt=%d\n", clinetFd, pakcetCnt++);
 			if (socketServerRxCb)
 			{
 				socketServerRxCb(clinetFd);
@@ -363,15 +367,16 @@ void socketSeverPoll(int clinetFd, int revent)
 		}
 		if (revent & POLLRDHUP)
 		{
+			printf("POLLRDHUP\n");
 			//its a shut down close the socket
-			//printf("Client fd:%d disconnected\n", clinetFd);
+			printf("Client fd:%d disconnected\n", clinetFd);
 
 			//remove the record and close the socket
 			deleteSocketRec(clinetFd);
 		}
 	}
 
-	//write(clientSockFd,"I got your message",18);
+	//write(clinetFd,"I got your message",18);
 
 	return;
 }
@@ -389,7 +394,7 @@ int32 socketSeverSend(uint8* buf, uint32 len, int32 fdClient)
 {
 	int32 rtn;
 
-	//printf("socketSeverSend++: writing to socket fd %d\n", fdClient);
+	printf("socketSeverSend++: writing to socket fd %d\n", fdClient);
 
 	if (fdClient)
 	{
@@ -401,7 +406,7 @@ int32 socketSeverSend(uint8* buf, uint32 len, int32 fdClient)
 		}
 	}
 
-	//printf("socketSeverSend--\n");
+	printf("socketSeverSend--\n");
 	return 0;
 }
 

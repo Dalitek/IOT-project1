@@ -59,6 +59,7 @@
 
 #include "zbSocCmd.h"
 #include "utils.h"
+#include "m1_protocol.h"
 
 
 void SRPC_RxCB(int clientFd);
@@ -373,31 +374,40 @@ static void srpcSendAll(uint8_t* srpcMsg)
 
 void SRPC_ProcessIncoming(uint8_t *pBuf, unsigned int nlen, uint32_t clientFd)
 {
-	srpcProcessMsg_t func;
 
-//  printf("SRPC_ProcessIncoming++[%x]\n", pBuf[SRPC_FUNC_ID]);
+	m1_package_t package;
+
+	package.fdClient = clientFd;
+	package.data = pBuf;
+	
+	printf("SRPC_ProcessIncoming:%s",pBuf);
+	data_handle(package);
+
+	//srpcProcessMsg_t func;
+
+  	//printf("SRPC_ProcessIncoming++[%x]\n", pBuf[SRPC_FUNC_ID]);
 	/* look up and call processing function */
 	
 	//?? json
 	//char * pMsg;
-	int ipos=0;
-	int i;
+	//int ipos=0;
+	//int i;
 	//char cjsonbuf[4096]={0};
-	char cjsonbuf[1024]={0};
-	char scmd[20]={0};
+	//char cjsonbuf[1024]={0};
+	//char scmd[20]={0};
 	//int nlen= pBuf[1]*256 + pBuf[2];
 	
-	for (i=0;i<nlen;i++ )
-	{
-    	//printf("%s,%d,pBuf[%d]=%u \n",__FUNCTION__,__LINE__,i,pBuf[i]);
-	   if (pBuf[i]==0x3B) 
-	   {
-	     ipos = i; 
-	     break;
-	   }
-	}
-	gw_debug("SRPC_ProcessIncoming step 1", &pBuf[0], nlen);
-	
+	// for (i=0;i<nlen;i++ )
+	// {
+ //    	printf("%s,%d,pBuf[%d]=%u \n",__FUNCTION__,__LINE__,i,pBuf[i]);
+	//    if (pBuf[i]==0x3B) 
+	//    {
+	//      ipos = i; 
+	//      break;
+	//    }
+	// }
+	// gw_debug("SRPC_ProcessIncoming step 1", &pBuf[0], nlen);
+#if 0	
 //	printf("%s,%d,ipos=%d \n",__FUNCTION__,__LINE__,ipos);	
 		#if 1
 		gw_debug("cjson: ", &pBuf[0], nlen );
@@ -427,6 +437,7 @@ void SRPC_ProcessIncoming(uint8_t *pBuf, unsigned int nlen, uint32_t clientFd)
  
                                                                                                        
     cJSON_Delete(pJson);
+#endif
 	//cjsonbuf[4096]=NULL;
 ////
 #if 0		
@@ -1552,7 +1563,7 @@ static uint8_t SRPC_permit_join_network(uint8_t *pBuf, uint32_t clientFd)
 	bool state;
 
        uint8_t duration;
-      duration = 0xFF; // 60Ãë=0x3C  25 Ãë =0x19  0xFF;  //ÓÀ¾Ã´ò¿ª
+      duration = 0xFF; // 60ÃƒÃ«=0x3C  25 ÃƒÃ« =0x19  0xFF;  //Ã“Ã€Â¾ÃƒÂ´Ã²Â¿Âª
 	zbSocOpenNwk(duration);
 
 	return 0;
@@ -1729,19 +1740,11 @@ void SRPC_ConnectCB(int clientFd)
 	 epInfo = devListGetNextDev(epInfo->nwkAddr, epInfo->endpoint);
 	 }
 	 */
-	 srpcSend("connected success !  ", clientFd);
-	printf("SRPC_ConnectCB--\n");
+	//srpcSend("connected success !  ", clientFd);
+	printf("connected success !\n");
+	//printf("SRPC_ConnectCB--\n");
 }
 
-//??????? ????
-void analydealcmdjson(int fd, unsigned char read_buf[256], unsigned char send_buf[256], int nlen)
-{
-
-	
-
-
-
-}
 
 /***************************************************************************************************
  * @fn      SRPC_RxCB
@@ -1767,56 +1770,56 @@ void SRPC_RxCB(int clientFd)
 	{
 		printf("SRPC_RxCB: Socket error\n");
 	}
-
-	while (byteToRead)
+	printf("byteToRead:%d\n",byteToRead);
+	//while (byteToRead)
+	while(byteToRead)
 	{
-
-
-
-
-
 #if 1	 
-	unsigned char buffer[2048*2] = {0};//
-	unsigned char read_buf[2048], data[1024];
-	int i, head = 0, tail = 0; //
-	int nready, nread, dlen;
+		unsigned char buffer[2048*2] = {0};//
+		unsigned char read_buf[2048], data[1024];
+		int i, head = 0, tail = 0; //
+		int nready, nread, dlen;
 
 		byteRead = 0;
 		byteRead += read(clientFd, read_buf, sizeof(read_buf));
+		byteToRead -= byteRead;
+		printf("byteRead:%d\n",byteRead);
 		if(byteRead > 0 && byteRead < (sizeof(read_buf) - tail))
 		{
 		    memcpy(&buffer[tail], read_buf, byteRead);
 		    tail += byteRead;
 		
-		    i = 0;
-		    while(i < tail && buffer[i] != 0x3A) i++;
+		    //i = 0;
+		    //while(i < tail && buffer[i] != 0x3A) i++;
+		   	// while(i < tail) i++;
 				
-		    while(buffer[i] == 0x3A && buffer[i+1] <= tail-i)
-		    {
-				memset(data, 0, sizeof(data));
-				dlen = buffer[i+1]*256+buffer[i+2];
-				memcpy(data, &buffer[i], dlen);
+		    //while(buffer[i] == 0x3A && buffer[i+1] <= tail-i)
+		    //{
+			//	memset(data, 0, sizeof(data));
+			//	dlen = buffer[i+1]*256+buffer[i+2];
+			//	memcpy(data, &buffer[i], dlen);
 				
-				SRPC_ProcessIncoming(&data[3], dlen - 3, clientFd);
+			//	SRPC_ProcessIncoming(&data[3], dlen - 3, clientFd);
+			SRPC_ProcessIncoming(read_buf, byteRead, clientFd);
 
 				
-				head = i + dlen;
-				tail -= head;
-				if(tail > 0)
-				{
-					memmove(buffer, &buffer[head], tail);
-				}
+		//		head = i + dlen;
+		//		tail -= head;
+		//		if(tail > 0)
+		//		{
+		//			memmove(buffer, &buffer[head], tail);
+		//		}
 
 				
-				i = 0;
-				while(i < tail && buffer[i] != 0x3A) i++;
-		    }
+		//		i = 0;
+		//		while(i < tail && buffer[i] != 0x3A) i++;
+		//    }
 		
 		}
 #endif						
 	}
 
-	//printf("SRPC_RxCB--\n");
+	printf("SRPC_RxCB--\n");
 
 	return;
 }
