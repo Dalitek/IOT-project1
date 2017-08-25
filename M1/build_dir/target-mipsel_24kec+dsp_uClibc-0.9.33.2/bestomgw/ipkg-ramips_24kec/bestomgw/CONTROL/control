@@ -1,0 +1,8 @@
+Package: bestomgw
+Version: 1
+Depends: libc, libpthread, librt, glib2
+Source: package/ramips/applications/bestomgw
+Section: MTK Properties
+Architecture: ramips_24kec
+Installed-Size: 347381
+Description:  An program to config bestomgw service deamon.
