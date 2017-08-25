@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=org.gtk.GDBus.Examples.ObjectManager
-Exec=/home/ubuntu/share/IOT-project1/M1/build_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/glib-2.41.1/gio/tests/gdbus-example-objectmanager-server
